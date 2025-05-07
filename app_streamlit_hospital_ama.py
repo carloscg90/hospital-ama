@@ -8,7 +8,7 @@ import plotly.express as px
 conn = sqlite3.connect('hospital_ama.db')
 
 st.set_page_config(layout="wide")
-st.title("📝 Informe Interactivo de Citas e Ingresos")
+st.title("📝 Dashboard Hospital_ama")
 
 # Filtros en barra lateral
 with st.sidebar:

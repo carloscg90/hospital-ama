@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import sqlite3
@@ -25,13 +26,13 @@ tabs = st.tabs(["📊 Citas por Estado", "👨‍⚕️ Citas por Doctor", "💰
 # TAB 1 - Citas por Estado
 with tabs[0]:
     st.subheader("Distribución de Citas por Estado")
-    query1 = f"""
+    query1 = f'''
         SELECT estado, COUNT(*) AS total_citas
         FROM Citas
         WHERE estado IN ({','.join(['?'] * len(estado_sel))})
           AND fecha BETWEEN ? AND ?
         GROUP BY estado
-    """
+    '''
     params1 = estado_sel + [str(fecha_rango[0]), str(fecha_rango[1])]
     df_estado = pd.read_sql_query(query1, conn, params=params1)
     st.dataframe(df_estado)
@@ -41,15 +42,15 @@ with tabs[0]:
 # TAB 2 - Citas por Doctor
 with tabs[1]:
     st.subheader("Citas por Doctor")
-    query2 = f"""
+    query2 = f'''
         SELECT d.nombre AS doctor, COUNT(*) AS total_citas
         FROM Citas c
         JOIN Doctores d ON c.doctor_id = d.id
         WHERE fecha BETWEEN ? AND ?
-        {"AND d.nombre = ?" if doctor_sel != "Todos" else ""}
+        {'AND d.nombre = ?' if doctor_sel != "Todos" else ""}
         GROUP BY d.nombre
         ORDER BY total_citas DESC
-    """
+    '''
     params2 = [str(fecha_rango[0]), str(fecha_rango[1])]
     if doctor_sel != "Todos":
         params2.append(doctor_sel)
@@ -61,7 +62,7 @@ with tabs[1]:
 # TAB 3 - Ingresos por Servicio
 with tabs[2]:
     st.subheader("Ingresos por Tipo de Servicio")
-    query3 = f"""
+    query3 = '''
         SELECT s.nombre_servicio AS servicio, SUM(s.precio) AS total_ingresos
         FROM Citas c
         JOIN Servicios s ON c.servicio_id = s.id
@@ -69,28 +70,13 @@ with tabs[2]:
           AND fecha BETWEEN ? AND ?
         GROUP BY s.nombre_servicio
         ORDER BY total_ingresos DESC
-    """
+    '''
     params3 = [str(fecha_rango[0]), str(fecha_rango[1])]
     df_servicio = pd.read_sql_query(query3, conn, params=params3)
     st.dataframe(df_servicio)
-
-    fig3 = px.bar(
-    df_servicio,
-    y="servicio",
-    x="total_ingresos",
-    orientation="h",
-    text="total_ingresos",  # ← Asegura que existe el campo 'text'
-    title="Ingresos por Servicio"
-)
-
+    fig3 = px.bar(df_servicio, y="servicio", x="total_ingresos", orientation="h", text="total_ingresos", title="Ingresos por Servicio")
     st.plotly_chart(fig3, use_container_width=True)
 
-    # Botón para descargar
     st.download_button("⬇️ Descargar tabla", data=df_servicio.to_csv(index=False), file_name="ingresos_servicio.csv", mime="text/csv")
 
 conn.close()
-
-fig_servicio.update_traces(texttemplate='$%{text:,.2f}')
-st.plotly_chart(fig_servicio)
-
-st.markdown("💰 Los ingresos varían según el tipo de servicio prestado. Esta vista permite identificar los más rentables.")

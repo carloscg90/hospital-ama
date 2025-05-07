@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Título
-st.title("Análisis Visual de Datos desde Archivos CSV")
+st.markdown("<h1 style='text-align: center;'>Análisis Visual de Datos hospital_ama</h1>", unsafe_allow_html=True)
 
 # Cargar datos desde CSVs
 citas_estado = pd.read_csv("citas_estado.csv")

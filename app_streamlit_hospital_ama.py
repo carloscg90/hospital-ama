@@ -82,7 +82,6 @@ with tabs[2]:
     text="total_ingresos",  # ← Asegura que existe el campo 'text'
     title="Ingresos por Servicio"
 )
-    fig3.update_traces(texttemplate='$%{text:,.2f}')  # ← Formato con símbolo de dólar y dos decimales
 
     st.plotly_chart(fig3, use_container_width=True)
 

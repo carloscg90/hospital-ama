@@ -73,7 +73,17 @@ with tabs[2]:
     params3 = [str(fecha_rango[0]), str(fecha_rango[1])]
     df_servicio = pd.read_sql_query(query3, conn, params=params3)
     st.dataframe(df_servicio)
-    fig3 = px.bar(df_servicio, y="servicio", x="total_ingresos", orientation="h", text="total_ingresos", title="Ingresos por Servicio")
+
+    fig3 = px.bar(
+    df_servicio,
+    y="servicio",
+    x="total_ingresos",
+    orientation="h",
+    text="total_ingresos",  # ← Asegura que existe el campo 'text'
+    title="Ingresos por Servicio"
+)
+    fig3.update_traces(texttemplate='$%{text:,.2f}')  # ← Formato con símbolo de dólar y dos decimales
+
     st.plotly_chart(fig3, use_container_width=True)
 
     # Botón para descargar

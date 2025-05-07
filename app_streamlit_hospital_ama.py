@@ -26,23 +26,42 @@ with st.sidebar:
     fecha_min, fecha_max = pd.read_sql_query("SELECT MIN(fecha), MAX(fecha) FROM Citas", conn).iloc[0]
     fecha_rango = st.date_input("Rango de fechas", [fecha_min, fecha_max])
 
+    paciente_input = st.text_input("Buscar paciente por nombre (opcional)")
+    tipo_grafico = st.radio("Tipo de gráfico por estado", ["Torta", "Barras"], horizontal=True)
+
 tabs = st.tabs(["📊 Citas por Estado", "👨‍⚕️ Citas por Doctor", "💰 Ingresos por Servicio", "📅 Citas por Fecha", "🧾 Detalle de Citas"])
+
+
 
 # TAB 1 - Citas por Estado
 with tabs[0]:
     st.subheader("Distribución de Citas por Estado")
-    query1 = f'''
+
+    query_base = f'''
         SELECT estado, COUNT(*) AS total_citas
-        FROM Citas
-        WHERE estado IN ({','.join(['?'] * len(estado_sel))})
-          AND fecha BETWEEN ? AND ?
-        GROUP BY estado
+        FROM Citas c
+        JOIN Pacientes p ON c.paciente_id = p.id
+        WHERE c.estado IN ({','.join(['?'] * len(estado_sel))})
+          AND c.fecha BETWEEN ? AND ?
     '''
     params1 = estado_sel + [str(fecha_rango[0]), str(fecha_rango[1])]
-    df_estado = pd.read_sql_query(query1, conn, params=params1)
+
+    if paciente_input:
+        query_base += " AND LOWER(p.nombre) LIKE ?"
+        params1.append(f"%{paciente_input.lower()}%")
+
+    query_base += " GROUP BY estado"
+
+    df_estado = pd.read_sql_query(query_base, conn, params=params1)
     st.dataframe(df_estado)
-    fig1 = px.bar(df_estado, x="estado", y="total_citas", text="total_citas", title="Citas por Estado")
+
+    if tipo_grafico == "Torta":
+        fig1 = px.pie(df_estado, names="estado", values="total_citas", title="Distribución de Citas por Estado", hole=0.3)
+    else:
+        fig1 = px.bar(df_estado, x="estado", y="total_citas", text="total_citas", title="Distribución de Citas por Estado")
+
     st.plotly_chart(fig1, use_container_width=True)
+
 
 # TAB 2 - Citas por Doctor
 with tabs[1]:
